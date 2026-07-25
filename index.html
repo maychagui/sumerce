@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DataPulse Suite Pro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #09090b; color: #f4f4f5; }
+    .glass { background: rgba(20, 20, 23, 0.85); backdrop-filter: blur(14px); border: 1px solid rgba(63, 63, 70, 0.3); }
+    
+    /* ESTILOS EDITORIALES PREMIUM PARA EL REPORTE DE IA */
+    .ai-render h1 { color: #c084fc; font-size: 1.6rem; font-weight: 800; tracking-tight: -0.025em; border-bottom: 1px solid rgba(168, 85, 247, 0.3); padding-bottom: 0.5rem; margin-top: 1.5rem; margin-bottom: 1rem; }
+    .ai-render h2 { color: #a855f7; font-size: 1.25rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.75rem; display: flex; items-center: center; gap: 0.5rem; }
+    .ai-render h3 { color: #e4e4e7; font-size: 1.05rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; border-left: 3px solid #a855f7; padding-left: 8px; }
+    .ai-render p { margin-bottom: 0.75rem; color: #a1a1aa; line-height: 1.6; font-size: 0.9rem; }
+    .ai-render ul { list-style-type: disc; margin-left: 1.25rem; margin-bottom: 1rem; color: #d4d4d8; space-y: 0.25rem; }
+    .ai-render li { font-size: 0.875rem; line-height: 1.5; }
+    .ai-render strong { color: #ffffff; font-weight: 600; }
+    .ai-render table { w-full: 100%; text-align: left; font-size: 0.8rem; margin: 1rem 0; border-collapse: collapse; background: rgba(24, 24, 27, 0.5); border-radius: 12px; overflow: hidden; border: 1px solid rgba(63, 63, 70, 0.4); }
+    .ai-render th { background: #18181b; padding: 0.75rem; text-transform: uppercase; font-weight: 600; color: #a1a1aa; border-bottom: 1px solid rgba(63, 63, 70, 0.4); }
+    .ai-render td { padding: 0.75rem; border-bottom: 1px solid rgba(39, 39, 42, 0.5); color: #e4e4e7; }
+    .ai-render tr:hover { background: rgba(39, 39, 42, 0.3); }
+    .ai-render hr { border-color: rgba(63, 63, 70, 0.3); margin: 1.5rem 0; }
+  </style>
+</head>
+<body class="antialiased min-h-screen pb-16 md:pb-0">
+
+  <!-- VISTA: LOGIN -->
+  <div id="view-login" class="flex items-center justify-center min-h-screen px-4">
+    <div class="w-full max-w-md p-8 glass rounded-2xl shadow-2xl space-y-5">
+      <div class="text-center">
+        <div class="inline-flex p-3 bg-purple-500/10 text-purple-400 rounded-xl mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>
+        </svg>
+      </div>
+        <h1 class="text-2xl font-bold tracking-tight">DataPulse Engine</h1>
+        <p class="text-xs text-zinc-400 mt-1">Conexión cifrada a tu ecosistema de control</p>
+      </div>
+      <form id="form-login" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 uppercase mb-1">Correo Corporativo</label>
+          <input type="email" id="login-email" required class="w-full px-4 py-2 bg-zinc-900 border border-zinc-700 rounded-xl text-white">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 uppercase mb-1">ID de Acceso Seguro (ID_Usuario)</label>
+          <input type="text" id="login-id" required class="w-full px-4 py-2 bg-zinc-900 border border-zinc-700 rounded-xl text-white" placeholder="Ej: Juan_Corp">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 uppercase mb-1">URL Google Apps Script</label>
+          <input type="url" id="login-url" required class="w-full px-4 py-2 bg-zinc-900 border border-zinc-700 rounded-xl text-white text-xs">
+        </div>
+        <button type="submit" class="w-full py-3 bg-purple-500 hover:bg-purple-600 font-bold rounded-xl text-zinc-950 transition-all flex items-center justify-center gap-2">
+          <span>Inicializar Aplicación</span><i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ONBOARDING MODAL -->
+  <div id="modal-onboarding" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="w-full max-w-3xl glass p-8 rounded-2xl space-y-4 my-8 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center">
+        <h2 class="text-xl font-bold text-purple-400 flex items-center gap-2"><i data-lucide="sparkles"></i> Configuración Estructural Base</h2>
+        <button onclick="cerrarOnboarding()" class="text-zinc-500 hover:text-white text-xs uppercase tracking-wider">Omitir</button>
+      </div>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs text-zinc-400 mb-1">Nombre Comercial de Empresa</label>
+          <input type="text" id="on-nombre" class="w-full bg-zinc-900 border border-zinc-700 p-2.5 rounded-xl text-white">
+        </div>
+        <div>
+          <label class="block text-xs text-zinc-400 mb-1">NIT</label>
+          <input type="text" id="on-nit" class="w-full bg-zinc-900 border border-zinc-700 p-2.5 rounded-xl text-white">
+        </div>
+      </div>
+
+      <h3 class="text-xs font-bold text-purple-400 uppercase tracking-wider border-b border-zinc-800 pb-1 pt-2">Matriz DOFA (Factores Internos)</h3>
+      <div class="grid grid-cols-2 gap-3 text-xs">
+        <div><label class="text-zinc-400 block mb-1">Fortalezas (F)</label><input type="text" id="on-f" class="w-full bg-zinc-900 border border-zinc-700 p-2 rounded-lg"></div>
+        <div><label class="text-zinc-400 block mb-1">Oportunidades (O)</label><input type="text" id="on-o" class="w-full bg-zinc-900 border border-zinc-700 p-2 rounded-lg"></div>
+        <div><label class="text-zinc-400 block mb-1">Debilidades (D)</label><input type="text" id="on-d" class="w-full bg-zinc-900 border border-zinc-700 p-2 rounded-lg"></div>
+        <div><label class="text-zinc-400 block mb-1">Amenazas (A)</label><input type="text" id="on-a" class="w-full bg-zinc-900 border border-zinc-700 p-2 rounded-lg"></div>
+      </div>
+
+      <button onclick="guardarOnboarding()" class="w-full py-3 bg-purple-500 text-zinc-950 font-bold rounded-xl mt-4">Almacenar Perfil Corporativo</button>
+    </div>
+  </div>
+
+  <!-- INTERFAZ PRINCIPAL -->
+  <div id="view-app" class="hidden min-h-screen flex flex-col md:flex-row">
+    <!-- Sidebar -->
+    <aside class="hidden md:flex flex-col w-64 glass p-6 space-y-7 shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-purple-500/10 text-purple-400 rounded-xl">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/>
+          </svg>
+        </div>
+        <span class="font-bold text-lg tracking-wide bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent truncate max-w-[150px]" id="header-empresa">DataPulse</span>
+      </div>
+      <nav class="space-y-1 flex-1">
+        <button onclick="cambiarPestaña('dash')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors bg-purple-500/10 text-purple-400 font-medium" data-tab="dash"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard</button>
+        <button onclick="cambiarPestaña('gestor')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-zinc-400 hover:bg-zinc-800/50" data-tab="gestor"><i data-lucide="boxes" class="w-5 h-5"></i> Inventario y Catálogo</button>
+        <button onclick="cambiarPestaña('objetivos')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-zinc-400 hover:bg-zinc-800/50" data-tab="objetivos"><i data-lucide="target" class="w-5 h-5"></i> Objetivos OKR</button>
+        <button onclick="cambiarPestaña('ia')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-zinc-400 hover:bg-zinc-800/50" data-tab="ia"><i data-lucide="cpu" class="w-5 h-5"></i> Consultor IA</button>
+        <button onclick="cambiarPestaña('perfil')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-zinc-400 hover:bg-zinc-800/50" data-tab="perfil"><i data-lucide="building" class="w-5 h-5"></i> Mi Organización</button>
+      </nav>
+      <div class="pt-4 border-t border-zinc-800 flex items-center gap-3 text-xs">
+        <div class="w-8 h-8 rounded-full bg-purple-500 text-zinc-950 font-bold flex items-center justify-center" id="avatar-user">U</div>
+        <p class="truncate flex-1 font-semibold text-zinc-300" id="label-user">User</p>
+        <button onclick="logout()" class="text-zinc-500 hover:text-rose-400"><i data-lucide="log-out" class="w-4 h-4"></i></button>
+      </div>
+    </aside>
+
+    <!-- Contenedor Principal SPA -->
+    <main class="flex-1 p-4 md:p-8 overflow-y-auto space-y-6 max-w-[1600px] mx-auto w-full">
+      
+      <!-- PESTAÑA: DASHBOARD -->
+      <section id="tab-dash" class="tab-content space-y-6">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-zinc-900/60 p-5 rounded-2xl border border-zinc-800">
+          <div>
+            <h2 class="text-2xl font-bold tracking-tight">Consola de Facturación</h2>
+            <p class="text-xs text-zinc-400">Filtrado dinámico interactivo cruzado</p>
+          </div>
+          <div class="flex items-center gap-2 bg-zinc-900 px-4 py-2 rounded-xl border border-zinc-700">
+            <i data-lucide="calendar" class="w-4 h-4 text-purple-400"></i>
+            <input type="date" id="filter-desde" class="bg-transparent text-xs focus:outline-none text-white">
+            <span class="text-zinc-500 text-xs">al</span>
+            <input type="date" id="filter-hasta" class="bg-transparent text-xs focus:outline-none text-white">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div class="glass p-5 rounded-2xl"><p class="text-xs font-semibold text-zinc-400 uppercase">Facturación Bruta</p><p class="text-2xl font-bold mt-2 text-purple-400" id="kpi-total">$ 0</p></div>
+          <div class="glass p-5 rounded-2xl"><p class="text-xs font-semibold text-zinc-400 uppercase">Volumen de Órdenes</p><p class="text-2xl font-bold mt-2 text-blue-400" id="kpi-ticket">0 ops</p></div>
+          <div class="glass p-5 rounded-2xl"><p class="text-xs font-semibold text-zinc-400 uppercase">Ticket Medio</p><p class="text-2xl font-bold mt-2 text-emerald-400" id="kpi-avg">$ 0</p></div>
+          <div class="glass p-5 rounded-2xl border border-purple-500/20"><p class="text-xs font-semibold text-purple-400 uppercase">Cumplimiento OKRs</p><p class="text-2xl font-bold mt-2 text-purple-400" id="kpi-okr-cumplimiento">0%</p></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="glass p-4 rounded-2xl"><h3 class="text-xs font-bold text-zinc-400 mb-2 uppercase px-1">Evolución Temporal</h3><div id="chart-timeline"></div></div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="glass p-4 rounded-2xl"><h3 class="text-xs font-bold text-zinc-400 mb-2 uppercase px-1">Ventas por Colaborador</h3><div id="chart-vendedores"></div></div>
+            <div class="glass p-4 rounded-2xl"><h3 class="text-xs font-bold text-zinc-400 mb-2 uppercase px-1">Distribución Territorial</h3><div id="chart-ubicaciones"></div></div>
+          </div>
+        </div>
+
+        <div class="glass rounded-2xl overflow-hidden">
+          <div class="p-4 border-b border-zinc-800"><h3 class="font-bold text-sm">Libro de Ventas Recientes</h3></div>
+          <div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="bg-zinc-900 text-zinc-400 uppercase font-semibold"><tr class="border-b border-zinc-800"><th class="p-3">Fecha</th><th class="p-3">Item/Producto</th><th class="p-3">Responsable</th><th class="p-3">Ubicación</th><th class="p-3 text-right">Monto</th></tr></thead><tbody id="tabla-ventas-body" class="divide-y divide-zinc-800/40"></tbody></table></div>
+        </div>
+      </section>
+
+      <!-- PESTAÑA: CATALOGO E INVENTARIOS -->
+      <section id="tab-gestor" class="tab-content space-y-6 hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="space-y-4 lg:col-span-1">
+            <!-- Facturar Venta -->
+            <div class="glass p-5 rounded-2xl space-y-3">
+              <h3 class="font-bold text-purple-400 text-xs uppercase tracking-wider flex items-center gap-1.5"><i data-lucide="shopping-cart" class="w-4 h-4"></i> Facturar Venta</h3>
+              <form id="form-nueva-venta" class="space-y-3 text-xs">
+                <div><label class="block mb-1 text-zinc-400">Fecha Operación</label><input type="date" id="v-fecha" required class="w-full bg-zinc-900 border border-zinc-700 p-2 rounded-lg text-white"></div>
+                <div><label class="block mb-1 text-zinc-400">Seleccionar Producto</label><select id="v-prod" onchange="autoCompletarPrecioVenta()" class="w-full bg-zinc-900 border border-zinc-700 p-2 rounded-lg text-white"></select></div>
+                
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block mb-1 text-zinc-400">Cantidad</label>
+                    <input type="number" id="v-cantidad" value="1" min="1" oninput="autoCompletarPrecioVenta()" required class="w-full bg-zinc-900 border border-zinc-700 p-2 rounded-lg text-white">
+                  </div>
+                  <div>
+                    <label class="block mb-1 text-zinc-400">Precio Unitario ($)</label>
+                    <input type="number" id="v-precio-unitario" readonly class="w-full bg-zinc-800 border border-zinc-700 p-2 rounded-lg text-zinc-400 select-none">
+                  </div>
+                </div>
+
+                <div><label class="block mb-1 text-zinc-400">Monto Total Calculado ($)</label><input type="number" id="v-monto" readonly required class="w-full bg-zinc-800 border border-zinc-700 p-2 rounded-lg text-emerald-400 font-bold"></div>
+                <div><label class="block mb-1 text-zinc-400">Asignar Vendedor</label><select id="v-vend" class="w-full bg-zinc-900 border border-zinc-700 p-2 rounded-lg text-white"></select></div>
+                <div><label class="block mb-1 text-zinc-400">Ubicación de Despacho</label><select id="v-ubici" class="w-full bg-zinc-900 border border-zinc-700 p-2 rounded-lg text-white"><option>Norte</option><option>Centro</option><option>Sur</option></select></div>
+                <button type="submit" class="w-full py-2 bg-purple-500 font-bold text-zinc-950 rounded-lg">Inyectar Transacción</button>
+              </form>
+            </div>
+
+            <!-- Añadir Producto -->
+            <div class="glass p-5 rounded-2xl space-y-3">
+              <h3 class="font-bold text-blue-400 text-xs uppercase tracking-wider flex items-center gap-1.5"><i data-lucide="package-plus" class="w-4 h-4"></i> Añadir Producto</h3>
+              <form id="form-add-producto" class="space-y-2.5 text-xs">
+                <div><label class="text-zinc-400 block mb-0.5">Nombre del Producto</label><input type="text" id="add-p-nombre" required class="w-full bg-zinc-900 border border-zinc-700 p-2 rounded-lg"></div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div><label class="text-zinc-400 block mb-0.5">Stock Inicial</label><input type="number" id="add-p-stock" required class="w-full bg-zinc-900 border border-zinc-700 p-2 rounded-lg"></div>
+                  <div><label class="text-zinc-400 block mb-0.5">Precio ($)</label><input type="number" id="add-p-precio" required class="w-full bg-zinc-900 border border-zinc-700 p-2 rounded-lg"></div>
+                </div>
+                <button type="submit" class="w-full py-2 bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-zinc-950 font-semibold rounded-lg transition-all">Registrar Item</button>
+              </form>
+            </div>
+
+            <!-- Añadir Vendedor -->
+            <div class="glass p-5 rounded-2xl space-y-3">
+              <h3 class="font-bold text-emerald-400 text-xs uppercase tracking-wider flex items-center gap-1.5"><i data-lucide="user-plus" class="w-4 h-4"></i> Añadir Vendedor</h3>
+              <form id="form-add-vendedor" class="space-y-2.5 text-xs">
+                <div><label class="text-zinc-400 block mb-0.5">Nombre Completo</label><input type="text" id="add-v-nombre" required class="w-full bg-zinc-900 border border-zinc-700 p-2 rounded-lg"></div>
+                <div><label class="text-zinc-400 block mb-0.5">Zona Asignada</label><select id="add-v-zona" class="w-full bg-zinc-900 border border-zinc-700 p-2 rounded-lg"><option>Norte</option><option>Centro</option><option>Sur</option></select></div>
+                <button type="submit" class="w-full py-2 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-zinc-950 font-semibold rounded-lg transition-all">Vincular Colaborador</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="glass p-5 rounded-2xl lg:col-span-2 space-y-4">
+            <h3 class="font-bold text-sm text-zinc-300 uppercase tracking-wide">Inventario de Productos</h3>
+            <div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="bg-zinc-900 text-zinc-400"><tr class="border-b border-zinc-800"><th class="p-3">Producto</th><th class="p-3">Stock Inicial</th><th class="p-3">Unidades Vendidas</th><th class="p-3">Disponibilidad Real</th><th class="p-3 text-right">Precio Unitario</th></tr></thead><tbody id="tabla-inventario-body" class="divide-y divide-zinc-800/40"></tbody></table></div>
+            
+            <div class="pt-4 border-t border-zinc-800/60 space-y-2">
+              <label class="block text-xs font-semibold text-zinc-400 mb-1">Mistral AI Token</label>
+              <div class="flex gap-2">
+                <input type="password" id="cfg-mistral" class="flex-1 bg-zinc-900 border border-zinc-700 p-2 text-xs rounded-lg text-white">
+                <button onclick="guardarMistralKey()" class="px-4 py-2 bg-purple-500 text-zinc-950 rounded-lg text-xs font-bold">Vincular Token</button>
+              </div>
+              <div id="api-status-badge" class="hidden text-[11px] font-semibold inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Conexión de API exitosa y vinculada
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PESTAÑA: TRACKING DE OBJETIVOS (INTEGRADA CON SECCIÓN DE IA EN PANTALLA) -->
+      <section id="tab-objetivos" class="tab-content space-y-6 hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="space-y-4 lg:col-span-1">
+            <div class="glass p-5 rounded-2xl space-y-3 h-fit">
+              <h3 class="font-bold text-purple-400 text-xs uppercase tracking-wider flex items-center gap-1.5"><i data-lucide="target" class="w-4 h-4"></i> Crear Objetivo Estratégico</h3>
+              <form id="form-nuevo-okr" class="space-y-3 text-xs">
+                <div><label class="block mb-1 text-zinc-400">Objetivo General (O)</label><input type="text" id="okr-obj" required class="w-full bg-zinc-900 border border-zinc-700 p-2 rounded-lg text-white" placeholder="Ej: Optimizar rotación de inventario"></div>
+                <div><label class="block mb-1 text-zinc-400">Key Result Asociado (KR)</label><input type="text" id="okr-desc" required class="w-full bg-zinc-900 border border-zinc-700 p-2 rounded-lg text-white" placeholder="Ej: Reducir stock de piña en un 30%"></div>
+                <div><label class="block mb-1 text-zinc-400">Meta Financiera ($) o Numérica</label><input type="number" id="okr-meta" required class="w-full bg-zinc-900 border border-zinc-700 p-2 rounded-lg text-white" placeholder="Ej: 15000000"></div>
+                <button type="submit" class="w-full py-2 bg-purple-500 font-bold text-zinc-950 rounded-lg">Establecer Meta</button>
+              </form>
+              <div id="okr-toast" class="hidden mt-2 text-center text-xs font-bold text-emerald-400 py-2 bg-emerald-500/10 rounded-lg">✅ OKR creado y sincronizado</div>
+              <div class="pt-2">
+                <button onclick="solicitarSugerenciasOKR()" class="w-full py-2 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Diseñar Propuesta con IA</button>
+              </div>
+            </div>
+
+            <!-- SECCIÓN NUEVA: CONTENEDOR DE SUGERENCIAS IA EN PANTALLA (NO POP-UP) -->
+            <div id="ai-suggestion-box" class="hidden glass p-5 rounded-2xl border border-purple-500/30 bg-purple-950/5 space-y-3 text-xs">
+              <div class="flex justify-between items-center border-b border-zinc-800 pb-2">
+                <h4 class="font-bold text-purple-400 flex items-center gap-1"><i data-lucide="brain" class="w-4 h-4"></i> Sugerencia Cognitiva Generada</h4>
+                <button onclick="document.getElementById('ai-suggestion-box').classList.add('hidden')" class="text-zinc-500 hover:text-white"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+              </div>
+              <div id="ai-suggestion-text" class="text-zinc-300 space-y-2 leading-relaxed"></div>
+              <button onclick="aplicarSugerenciaAFormulario()" class="w-full py-2 bg-purple-500 hover:bg-purple-600 font-bold text-zinc-950 rounded-lg mt-1 flex items-center justify-center gap-1.5"><i data-lucide="copy-check" class="w-3.5 h-3.5"></i> Cargar al Formulario</button>
+            </div>
+          </div>
+          
+          <div class="lg:col-span-2 space-y-4">
+            <h3 class="font-bold text-sm text-zinc-300 uppercase tracking-wide">Cuadro de Mando de Objetivos (OKRs Activos)</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="container-objetivos"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PESTAÑA: ASISTENTE IA -->
+      <section id="tab-ia" class="tab-content space-y-4 hidden">
+        <div class="flex items-center justify-between">
+          <div><h2 class="text-xl font-bold tracking-tight">Consultor Avanzado</h2><p class="text-xs text-zinc-400">Análisis real de rendimiento cruzado con matrices organizacionales</p></div>
+          <button onclick="ejecutarAnalisisIA()" class="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-zinc-950 font-bold rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-purple-500/20"><i data-lucide="cpu" class="w-4 h-4"></i> Generar Informe Ejecutivo</button>
+        </div>
+        <div class="glass p-6 rounded-2xl min-h-[400px] flex flex-col justify-between bg-zinc-900/40">
+          <!-- CONTENEDOR DE RENDIMIENTO EDITORIAL RENDERIZADO -->
+          <div id="ia-output" class="ai-render space-y-4"><p class="text-zinc-500 italic text-center py-20">Haz clic en "Generar Informe Ejecutivo" para mapear la base de datos de ventas reales, inventario y matrices estrategicas.</p></div>
+        </div>
+      </section>
+
+      <!-- PESTAÑA: MI ORGANIZACIÓN -->
+      <section id="tab-perfil" class="tab-content space-y-6 hidden">
+        <div><h2 class="text-xl font-bold tracking-tight">Ficha de Planificación Estructural</h2><p class="text-xs text-zinc-400">Configuración de factores internos y externos globales</p></div>
+        <div class="glass p-6 rounded-2xl space-y-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div><label class="block text-xs font-bold text-zinc-400 mb-1 uppercase">Razón Social</label><input type="text" id="p-nombre" class="w-full bg-zinc-900 border border-zinc-700 p-2 text-xs rounded-lg text-white"></div>
+            <div><label class="block text-xs font-bold text-zinc-400 mb-1 uppercase">NIT</label><input type="text" id="p-nit" class="w-full bg-zinc-900 border border-zinc-700 p-2 text-xs rounded-lg text-white"></div>
+            <div><label class="block text-xs font-bold text-zinc-400 mb-1 uppercase">Tamaño / Nómina</label><input type="text" id="p-tam" class="w-full bg-zinc-900 border border-zinc-700 p-2 text-xs rounded-lg text-white"></div>
+            <div><label class="block text-xs font-bold text-zinc-400 mb-1 uppercase">Sector Económico</label><input type="text" id="p-sec" class="w-full bg-zinc-900 border border-zinc-700 p-2 text-xs rounded-lg text-white"></div>
+          </div>
+
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5"><i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Matriz de Análisis Interno (DOFA)</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              <div class="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800"><label class="block text-purple-400 font-bold mb-1">Fortalezas (F)</label><textarea id="p-f" rows="4" class="w-full bg-zinc-950 p-2 border border-zinc-800 rounded-lg text-zinc-300" placeholder="Ventajas internas..."></textarea></div>
+              <div class="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800"><label class="block text-emerald-400 font-bold mb-1">Oportunidades (O)</label><textarea id="p-o" rows="4" class="w-full bg-zinc-950 p-2 border border-zinc-800 rounded-lg text-zinc-300" placeholder="Mercados, tendencias..."></textarea></div>
+              <div class="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800"><label class="block text-amber-500 font-bold mb-1">Debilidades (D)</label><textarea id="p-d" rows="4" class="w-full bg-zinc-950 p-2 border border-zinc-800 rounded-lg text-zinc-300" placeholder="Puntos de mejora..."></textarea></div>
+              <div class="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800"><label class="block text-rose-400 font-bold mb-1">Amenazas (A)</label><textarea id="p-a" rows="4" class="w-full bg-zinc-950 p-2 border border-zinc-800 rounded-lg text-zinc-300" placeholder="Riesgos externos..."></textarea></div>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5"><i data-lucide="globe" class="w-3.5 h-3.5"></i> Matriz de Entorno Macroeconómico (PESTEL)</h4>
+            <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+              <div class="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800"><label class="block text-blue-400 font-bold mb-1">Político</label><textarea id="p-pe" rows="3" class="w-full bg-zinc-950 p-2 border border-zinc-800 rounded-lg" placeholder="Políticas gubernamentales..."></textarea></div>
+              <div class="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800"><label class="block text-emerald-400 font-bold mb-1">Económico</label><textarea id="p-ec" rows="3" class="w-full bg-zinc-950 p-2 border border-zinc-800 rounded-lg" placeholder="Tasas, inflación..."></textarea></div>
+              <div class="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800"><label class="block text-purple-400 font-bold mb-1">Social</label><textarea id="p-so" rows="3" class="w-full bg-zinc-950 p-2 border border-zinc-800 rounded-lg" placeholder="Demografía, cultura..."></textarea></div>
+              <div class="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800"><label class="block text-orange-400 font-bold mb-1">Tecnológico</label><textarea id="p-te" rows="3" class="w-full bg-zinc-950 p-2 border border-zinc-800 rounded-lg" placeholder="Innovación, I+D..."></textarea></div>
+              <div class="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800"><label class="block text-teal-400 font-bold mb-1">Ecológico</label><textarea id="p-eco" rows="3" class="w-full bg-zinc-950 p-2 border border-zinc-800 rounded-lg" placeholder="Sostenibilidad, clima..."></textarea></div>
+              <div class="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800"><label class="block text-rose-400 font-bold mb-1">Legal</label><textarea id="p-le" rows="3" class="w-full bg-zinc-950 p-2 border border-zinc-800 rounded-lg" placeholder="Leyes, regulaciones..."></textarea></div>
+            </div>
+          </div>
+
+          <div class="flex justify-end"><button onclick="guardarDatosPerfil()" class="px-6 py-2.5 bg-purple-500 hover:bg-purple-600 text-zinc-950 font-bold rounded-xl text-xs shadow-lg shadow-purple-500/10">Sincronizar Estructura Estratégica</button></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Nav Móvil -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 glass border-t border-zinc-800 py-1.5 flex justify-around items-center z-40 text-[10px]">
+      <button onclick="cambiarPestaña('dash')" class="mobile-nav-btn flex flex-col items-center text-purple-400" data-tab="dash"><i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Dash</span></button>
+      <button onclick="cambiarPestaña('gestor')" class="mobile-nav-btn flex flex-col items-center text-zinc-500" data-tab="gestor"><i data-lucide="boxes" class="w-4 h-4"></i><span>Catálogo</span></button>
+      <button onclick="cambiarPestaña('objetivos')" class="mobile-nav-btn flex flex-col items-center text-zinc-500" data-tab="objetivos"><i data-lucide="target" class="w-4 h-4"></i><span>OKRs</span></button>
+      <button onclick="cambiarPestaña('ia')" class="mobile-nav-btn flex flex-col items-center text-zinc-500" data-tab="ia"><i data-lucide="cpu" class="w-4 h-4"></i><span>IA</span></button>
+    </nav>
+  </div>
+
+  <script>
+    let session = { correo: "", idUsuario: "", urlScript: "", mistralKey: "" };
+    let db = { ventas: [], productos: [], vendedores: [], objetivos: [], organizacion: {} };
+    let chartInstances = { timeline: null, vendedores: null, ubicaciones: null };
+    let selectedFilters = { vendedor: null, ubicacion: null };
+    let temporaryAISuggestion = { obj: "", kr: "" }; // Estado local para autocompletar OKRs
+
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      inicializarFechasSlicer();
+      cargarSesionExistente();
+      document.getElementById('filter-desde').addEventListener('change', procesarFiltrosYRender);
+      document.getElementById('filter-hasta').addEventListener('change', procesarFiltrosYRender);
+      document.getElementById('form-login').addEventListener('submit', ejecutarLogin);
+      document.getElementById('form-nueva-venta').addEventListener('submit', ejecutarRegistroVenta);
+      document.getElementById('form-add-producto').addEventListener('submit', ejecutarAddProducto);
+      document.getElementById('form-add-vendedor').addEventListener('submit', ejecutarAddVendedor);
+      document.getElementById('form-nuevo-okr').addEventListener('submit', ejecutarCrearOKR);
+    });
+
+    function inicializarFechasSlicer() {
+      const hoy = new Date();
+      document.getElementById('filter-hasta').value = hoy.toISOString().split('T')[0];
+      document.getElementById('filter-desde').value = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0];
+    }
+
+    function cargarSesionExistente() {
+      const cache = localStorage.getItem('datapulse_session_v5');
+      if (cache) {
+        session = JSON.parse(cache);
+        document.getElementById('label-user').innerText = session.correo;
+        document.getElementById('avatar-user').innerText = session.idUsuario.substring(0,2).toUpperCase();
+        document.getElementById('view-login').classList.add('hidden');
+        document.getElementById('view-app').classList.remove('hidden');
+        
+        consumirApiBack('obtenerDatosDashboard', {}, (res) => {
+          db.ventas = res.ventas || [];
+          db.productos = res.productos || [];
+          db.vendedores = res.vendedores || [];
+          db.objetivos = res.objetivos || [];
+          db.organizacion = res.organizacion || {};
+          session.mistralKey = res.mistralKey || "";
+          
+          document.getElementById('header-empresa').innerText = db.organizacion.nombreEmpresa || "DataPulse";
+          document.getElementById('cfg-mistral').value = session.mistralKey;
+          
+          if(session.mistralKey) {
+            document.getElementById('api-status-badge').classList.remove('hidden');
+          }
+          
+          mapearDatosOrganizacionAInputs();
+          poblarListasDesplegablesFormulario();
+          renderizarTablaInventario();
+          renderizarObjetivos();
+          procesarFiltrosYRender();
+        });
+      }
+    }
+
+    function consumirApiBack(action, payload, callback) {
+      if(!session.urlScript && action !== 'login') return;
+      fetch(action === 'login' ? document.getElementById('login-url').value : session.urlScript, {
+        method: 'POST',
+        mode: 'cors',
+        body: JSON.stringify({ action: action, idUsuario: session.idUsuario, correo: session.correo, ...payload })
+      })
+      .then(r => r.json())
+      .then(res => { if(res.success) callback(res.data); else alert("Error operativo: " + res.error); })
+      .catch(() => console.log("Fetch procesado"));
+    }
+
+    function ejecutarLogin(e) {
+      e.preventDefault();
+      session.correo = document.getElementById('login-email').value;
+      session.idUsuario = document.getElementById('login-id').value;
+      session.urlScript = document.getElementById('login-url').value;
+      
+      consumirApiBack('login', {}, (res) => {
+        session.idUsuario = res.idUsuario;
+        localStorage.setItem('datapulse_session_v5', JSON.stringify(session));
+        if(res.organizacion) {
+          db.organizacion = res.organizacion;
+          document.getElementById('header-empresa').innerText = db.organizacion.nombreEmpresa || "DataPulse";
+        }
+        document.getElementById('view-login').classList.add('hidden');
+        document.getElementById('view-app').classList.remove('hidden');
+        if(res.esNuevo) document.getElementById('modal-onboarding').classList.remove('hidden');
+        else cargarSesionExistente();
+      });
+    }
+
+    function cerrarOnboarding() { document.getElementById('modal-onboarding').classList.add('hidden'); cargarSesionExistente(); }
+
+    function guardarOnboarding() {
+      const orgData = {
+        nombreEmpresa: document.getElementById('on-nombre').value,
+        nit: document.getElementById('on-nit').value,
+        tamaño: "", sector: "",
+        dofa: { f: document.getElementById('on-f').value, o: document.getElementById('on-o').value, d: document.getElementById('on-d').value, a: document.getElementById('on-a').value },
+        pestel: { pe: "", ec: "", so: "", te: "", eco: "", le: "" }
+      };
+      consumirApiBack('guardarOrganizacion', { orgData: orgData }, (res) => { 
+        db.organizacion = orgData; 
+        document.getElementById('header-empresa').innerText = res.nombreEmpresa || "DataPulse";
+        cerrarOnboarding(); 
+      });
+    }
+
+    function mapearDatosOrganizacionAInputs() {
+      document.getElementById('p-nombre').value = db.organizacion.nombreEmpresa || "";
+      document.getElementById('p-nit').value = db.organizacion.nit || "";
+      document.getElementById('p-tam').value = db.organizacion.tamaño || "";
+      document.getElementById('p-sec').value = db.organizacion.sector || "";
+      
+      const d = db.organizacion.dofa || {};
+      document.getElementById('p-f').value = d.f || ""; document.getElementById('p-o').value = d.o || "";
+      document.getElementById('p-d').value = d.d || ""; document.getElementById('p-a').value = d.a || "";
+
+      const p = db.organizacion.pestel || {};
+      document.getElementById('p-pe').value = p.pe || ""; document.getElementById('p-ec').value = p.ec || "";
+      document.getElementById('p-so').value = p.so || ""; document.getElementById('p-te').value = p.te || "";
+      document.getElementById('p-eco').value = p.eco || ""; document.getElementById('p-le').value = p.le || "";
+    }
+
+    function guardarDatosPerfil() {
+      const orgData = {
+        nombreEmpresa: document.getElementById('p-nombre').value,
+        nit: document.getElementById('p-nit').value,
+        tamaño: document.getElementById('p-tam').value,
+        sector: document.getElementById('p-sec').value,
+        dofa: { f: document.getElementById('p-f').value, o: document.getElementById('p-o').value, d: document.getElementById('p-d').value, a: document.getElementById('p-a').value },
+        pestel: { pe: document.getElementById('p-pe').value, ec: document.getElementById('p-ec').value, so: document.getElementById('p-so').value, te: document.getElementById('p-te').value, eco: document.getElementById('p-eco').value, le: document.getElementById('p-le').value }
+      };
+      consumirApiBack('guardarOrganizacion', { orgData: orgData }, (res) => { 
+        db.organizacion = orgData;
+        document.getElementById('header-empresa').innerText = res.nombreEmpresa || "DataPulse";
+        alert("Configuración e identidad corporativa sincronizadas."); 
+        cargarSesionExistente();
+      });
+    }
+
+    function ejecutarAddProducto(e) {
+      e.preventDefault();
+      const prod = { nombre: document.getElementById('add-p-nombre').value, stockInicial: document.getElementById('add-p-stock').value, precio: document.getElementById('add-p-precio').value };
+      consumirApiBack('crearProducto', { producto: prod }, () => { document.getElementById('form-add-producto').reset(); cargarSesionExistente(); });
+    }
+
+    function ejecutarAddVendedor(e) {
+      e.preventDefault();
+      const vend = { nombre: document.getElementById('add-v-nombre').value, zona: document.getElementById('add-v-zona').value };
+      consumirApiBack('crearVendedor', { vendedor: vend }, () => { document.getElementById('form-add-vendedor').reset(); cargarSesionExistente(); });
+    }
+
+    function poblarListasDesplegablesFormulario() {
+      const fProd = document.getElementById('v-prod'); fProd.innerHTML = "";
+      db.productos.forEach(p => fProd.innerHTML += `<option value="${p.nombre}">${p.nombre}</option>`);
+      const fVend = document.getElementById('v-vend'); fVend.innerHTML = "";
+      db.vendedores.forEach(v => fVend.innerHTML += `<option value="${v.nombre}">${v.nombre}</option>`);
+      autoCompletarPrecioVenta();
+    }
+
+    function autoCompletarPrecioVenta() {
+      const match = db.productos.find(p => p.nombre === document.getElementById('v-prod').value);
+      if(match) {
+        const cantidad = Number(document.getElementById('v-cantidad').value) || 1;
+        document.getElementById('v-precio-unitario').value = match.precio;
+        document.getElementById('v-monto').value = Math.round(match.precio * cantidad);
+      }
+    }
+
+    function renderizarTablaInventario() {
+      const tbody = document.getElementById('tabla-inventario-body'); tbody.innerHTML = "";
+      db.productos.forEach(p => {
+        let disponible = Number(p.stockInicial) - Number(p.vendidos);
+        tbody.innerHTML += `
+          <tr class="border-b border-zinc-800/40 hover:bg-zinc-900/40 text-xs">
+            <td class="p-3 font-medium text-zinc-200">${p.nombre}</td>
+            <td class="p-3 text-zinc-400">${p.stockInicial} u</td>
+            <td class="p-3 text-purple-400 font-semibold">${p.vendidos} u</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded text-[11px] ${disponible < 10 ? 'bg-amber-500/10 text-amber-400':'bg-emerald-500/10 text-emerald-400'}">${disponible} uds</span></td>
+            <td class="p-3 text-right font-bold text-zinc-300">$ ${Number(p.precio).toLocaleString()}</td>
+          </tr>`;
+      });
+    }
+
+    function ejecutarRegistroVenta(e) {
+      e.preventDefault();
+      const venta = { 
+        fecha: document.getElementById('v-fecha').value, 
+        producto: document.getElementById('v-prod').value, 
+        cantidad: document.getElementById('v-cantidad').value,
+        monto: document.getElementById('v-monto').value, 
+        vendedor: document.getElementById('v-vend').value, 
+        ubicacion: document.getElementById('v-ubici').value 
+      };
+      
+      db.ventas.unshift({
+        id: "V-TEMP",
+        fecha: venta.fecha,
+        producto: venta.producto,
+        cantidad: Number(venta.cantidad),
+        monto: Number(venta.monto),
+        vendedor: venta.vendedor,
+        ubicacion: venta.ubicacion
+      });
+
+      procesarFiltrosYRender();
+      document.getElementById('form-nueva-venta').reset();
+      document.getElementById('v-cantidad').value = "1";
+      cambiarPestaña('dash');
+
+      consumirApiBack('registrarVenta', { venta: venta }, () => { 
+        consumirApiBack('obtenerDatosDashboard', {}, (res) => {
+          db.ventas = res.ventas || [];
+          db.productos = res.productos || [];
+          db.objetivos = res.objetivos || [];
+          renderizarTablaInventario();
+          renderizarObjetivos();
+          procesarFiltrosYRender();
+        });
+      });
+    }
+
+    function renderizarObjetivos() {
+      const cont = document.getElementById('container-objetivos'); cont.innerHTML = "";
+      let totalMeta = 0, totalActual = 0;
+
+      if (!db.objetivos || db.objetivos.length === 0) {
+        cont.innerHTML = '<p class="col-span-2 text-center text-zinc-500 py-8 text-xs">Sin OKRs registrados. Crea el primero desde el panel lateral.</p>';
+        document.getElementById('kpi-okr-cumplimiento').innerText = '0%';
+        return;
+      }
+
+      db.objetivos.forEach(o => {
+        totalMeta   += Number(o.meta   || 0);
+        totalActual += Number(o.actual || 0);
+        const meta   = Number(o.meta   || 1);
+        const actual = Number(o.actual || 0);
+        const pct    = meta > 0 ? Math.min(Math.round((actual / meta) * 100), 100) : 0;
+        const falta  = Math.max(0, meta - actual);
+
+        const semColor = pct >= 70 ? 'bg-emerald-500'  : pct >= 40 ? 'bg-amber-400'  : 'bg-rose-500';
+        const semText  = pct >= 70 ? 'text-emerald-400': pct >= 40 ? 'text-amber-400': 'text-rose-400';
+        const semBg    = pct >= 70 ? 'bg-emerald-500/10 text-emerald-400' : pct >= 40 ? 'bg-amber-400/10 text-amber-400' : 'bg-rose-500/10 text-rose-400';
+        const semLabel = pct >= 70 ? '🟢 En camino'    : pct >= 40 ? '🟡 Seguimiento': '🔴 Crítico';
+
+        const objetivoTexto = o.objetivo || o.id || 'Objetivo Estratégico';
+        const faltaTexto = falta <= 0 ? '✓ Meta' : '$' + falta.toLocaleString('es-CO');
+        const faltaColor = falta <= 0 ? 'text-emerald-400' : 'text-zinc-300';
+
+        const card = `<div class="glass p-5 rounded-2xl space-y-3 text-xs border border-zinc-800 hover:border-zinc-600 transition-colors">
+            <div class="flex justify-between items-center">
+              <span class="px-2 py-0.5 bg-purple-500/10 text-purple-400 text-[10px] uppercase font-bold rounded-md">OKR</span>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${semBg}">${semLabel}</span>
+            </div>
+            <div class="space-y-0.5">
+              <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-wider">Objetivo (O)</p>
+              <p class="text-zinc-200 font-semibold leading-snug">${objetivoTexto}</p>
+            </div>
+            <div class="space-y-0.5">
+              <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-wider">Key Result (KR)</p>
+              <p class="text-zinc-300 leading-snug">${o.descripcion}</p>
+            </div>
+            <div class="space-y-1.5">
+              <div class="flex justify-between items-center">
+                <span class="text-zinc-400">Avance</span>
+                <span class="font-bold text-sm ${semText}" id="pct-label-${o.id}">${pct}%</span>
+              </div>
+              <div class="w-full bg-zinc-800 h-2.5 rounded-full overflow-hidden">
+                <div class="${semColor} h-full rounded-full transition-all duration-700" id="pct-bar-${o.id}" style="width:${pct}%"></div>
+              </div>
+            </div>
+            <!-- INPUT DE AVANCE MANUAL -->
+            <div class="flex items-center gap-2 pt-1">
+              <label class="text-zinc-500 text-[10px] whitespace-nowrap">Actualizar avance ($)</label>
+              <input
+                type="number"
+                id="input-actual-${o.id}"
+                value="${actual}"
+                min="0"
+                max="${meta}"
+                class="flex-1 bg-zinc-900 border border-zinc-700 text-white text-xs px-2 py-1.5 rounded-lg focus:border-purple-500 focus:outline-none"
+                placeholder="Monto actual"
+              />
+              <button
+                onclick="actualizarAvanceOKR('${o.id}', ${meta})"
+                class="px-3 py-1.5 bg-purple-500 hover:bg-purple-600 text-zinc-950 font-bold text-[10px] rounded-lg transition-colors whitespace-nowrap"
+              >Guardar</button>
+            </div>
+            <div class="flex justify-between items-center pt-1 border-t border-zinc-800">
+              <div class="text-center">
+                <p class="text-zinc-500 text-[10px] mb-0.5">Actual</p>
+                <p class="text-zinc-200 font-bold" id="actual-label-${o.id}">$${actual.toLocaleString('es-CO')}</p>
+              </div>
+              <div class="text-center">
+                <p class="text-zinc-500 text-[10px] mb-0.5">Meta</p>
+                <p class="text-zinc-200 font-bold">$${meta.toLocaleString('es-CO')}</p>
+              </div>
+              <div class="text-center">
+                <p class="text-zinc-500 text-[10px] mb-0.5">Falta</p>
+                <p class="font-bold ${faltaColor}" id="falta-label-${o.id}">${faltaTexto}</p>
+              </div>
+            </div>
+          </div>`;
+        cont.innerHTML += card;
+      });
+
+      const globalPct = totalMeta > 0 ? Math.min(Math.round((totalActual / totalMeta) * 100), 100) : 0;
+      document.getElementById('kpi-okr-cumplimiento').innerText = globalPct + "%";
+    }
+    function ejecutarCrearOKR(e) {
+      e.preventDefault();
+      const obj = { 
+        objetivo:    document.getElementById('okr-obj').value,
+        descripcion: document.getElementById('okr-desc').value, 
+        meta:        document.getElementById('okr-meta').value, 
+        actual:      0 
+      };
+      consumirApiBack('guardarObjetivo', { objetivo: obj }, () => {
+        document.getElementById('form-nuevo-okr').reset();
+        const toast = document.getElementById('okr-toast');
+        if (toast) { toast.classList.remove('hidden'); setTimeout(() => toast.classList.add('hidden'), 3000); }
+        cargarSesionExistente();
+      });
+    }
+
+    // MEJORA: ELIMINACIÓN DEL ALERT EN FAVOR DE UN CONTENEDOR EN PANTALLA REACITVO
+    function solicitarSugerenciasOKR() {
+      if(!session.mistralKey) return alert("Falta API Key de Mistral.");
+      
+      const inventarioResumen = db.productos.map(p => `${p.nombre} (Stock: ${p.stockInicial}, Vendidos: ${p.vendidos})`).join(', ');
+      
+      const prompt = `Actúa como un Director de Operaciones. Genera una sugerencia exacta para un Objetivo (O) con un Resultado Clave (KR) medible para la empresa "${db.organizacion.nombreEmpresa || 'Merco'}". Inventario actual: [${inventarioResumen}]. Devuelve estrictamente una respuesta en formato JSON plano con dos llaves: "objetivo" y "resultado_clave". No agregues explicaciones adicionales ni bloques de código de markdown.`;
+      
+      const suggestionBox = document.getElementById('ai-suggestion-box');
+      const suggestionText = document.getElementById('ai-suggestion-text');
+      
+      suggestionBox.classList.remove('hidden');
+      suggestionText.innerHTML = `<p class="animate-pulse text-purple-400 italic">Estructurando propuesta comercial en vivo...</p>`;
+
+      fetch('https://api.mistral.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.mistralKey}` },
+        body: JSON.stringify({ model: 'mistral-tiny', messages: [{ role: 'user', content: prompt }], temperature: 0.1 })
+      })
+      .then(r => r.json()).then(res => { 
+        try {
+          const cleanJson = res.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "").trim();
+          const parsed = JSON.parse(cleanJson);
+          
+          const krTexto = typeof parsed.resultado_clave === 'object'
+            ? (parsed.resultado_clave.texto || parsed.resultado_clave.descripcion || Object.values(parsed.resultado_clave).join(' '))
+            : String(parsed.resultado_clave || '');
+          const krMeta = typeof parsed.resultado_clave === 'object'
+            ? (parsed.resultado_clave.meta || parsed.meta || '')
+            : (parsed.meta || '');
+
+          temporaryAISuggestion.obj  = parsed.objetivo;
+          temporaryAISuggestion.kr   = krTexto;
+          temporaryAISuggestion.meta = krMeta;
+
+          suggestionText.innerHTML = `
+            <p class="mb-2"><strong class="text-purple-400">Objetivo (O):</strong><br/><span class="text-zinc-200">${parsed.objetivo}</span></p>
+            <p class="mb-2"><strong class="text-purple-400">Key Result (KR):</strong><br/><span class="text-zinc-200">${krTexto}</span></p>
+            ${krMeta ? `<p><strong class="text-purple-400">Meta sugerida:</strong> <span class="text-emerald-400">$${Number(krMeta).toLocaleString('es-CO')}</span></p>` : ''}
+          `;
+        } catch (e) {
+          // Fallback por si la IA devuelve texto plano estructurado en lugar de JSON puro
+          const txt = res.choices[0].message.content;
+          suggestionText.innerText = txt;
+          temporaryAISuggestion.obj = "Optimizar Rotación de Inventario Crítico";
+          temporaryAISuggestion.kr = "Aumentar margen de venta de productos con baja demanda";
+        }
+      });
+    }
+
+    function aplicarSugerenciaAFormulario() {
+      document.getElementById('okr-obj').value  = temporaryAISuggestion.obj  || '';
+      document.getElementById('okr-desc').value = temporaryAISuggestion.kr   || '';
+      if (temporaryAISuggestion.meta) document.getElementById('okr-meta').value = temporaryAISuggestion.meta;
+      document.getElementById('ai-suggestion-box').classList.add('hidden');
+    }
+
+    function procesarFiltrosYRender() {
+      const inputDesde = document.getElementById('filter-desde').value;
+      const inputHasta = document.getElementById('filter-hasta').value;
+      
+      if (!inputDesde || !inputHasta) return;
+
+      const partesDesde = inputDesde.split('-');
+      const partesHasta = inputHasta.split('-');
+      const fDesde = new Date(partesDesde[0], partesDesde[1] - 1, partesDesde[2]).getTime();
+      const fHasta = new Date(partesHasta[0], partesHasta[1] - 1, partesHasta[2], 23, 59, 59).getTime();
+      
+      let filtered = db.ventas.filter(v => { 
+        if (!v.fecha) return false;
+        
+        let fechaStr = typeof v.fecha === 'string' ? v.fecha.split('T')[0] : new Date(v.fecha).toISOString().split('T')[0];
+        let p = fechaStr.split('-');
+        let fVentaTimestamp = new Date(p[0], p[1] - 1, p[2]).getTime();
+        
+        return fVentaTimestamp >= fDesde && fVentaTimestamp <= fHasta; 
+      });
+
+      if (selectedFilters.vendedor) filtered = filtered.filter(v => v.vendedor === selectedFilters.vendedor);
+      if (selectedFilters.ubicacion) filtered = filtered.filter(v => v.ubicacion === selectedFilters.ubicacion);
+
+      let total = 0, mapTimeline = {}, mapVendedores = {}, mapUbicaciones = {};
+      filtered.forEach(v => {
+        total += Number(v.monto);
+        let iso = typeof v.fecha === 'string' ? v.fecha.split('T')[0] : new Date(v.fecha).toISOString().split('T')[0];
+        mapTimeline[iso] = (mapTimeline[iso] || 0) + Number(v.monto);
+        mapVendedores[v.vendedor] = (mapVendedores[v.vendedor] || 0) + Number(v.monto);
+        mapUbicaciones[v.ubicacion || "General"] = (mapUbicaciones[v.ubicacion || "General"] || 0) + Number(v.monto);
+      });
+
+      document.getElementById('kpi-total').innerText = "$ " + total.toLocaleString('es-CO');
+      document.getElementById('kpi-ticket').innerText = filtered.length + " ops";
+      document.getElementById('kpi-avg').innerText = "$ " + (filtered.length > 0 ? Math.round(total / filtered.length).toLocaleString('es-CO') : 0);
+
+      const tbody = document.getElementById('tabla-ventas-body'); tbody.innerHTML = "";
+      filtered.forEach(v => {
+        let fechaLocal = typeof v.fecha === 'string' ? v.fecha.split('T')[0] : new Date(v.fecha).toISOString().split('T')[0];
+        let componentes = fechaLocal.split('-');
+        let fechaFormateada = `${componentes[2]}/${componentes[1]}/${componentes[0]}`;
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-zinc-900/30 border-b border-zinc-800/20 text-xs">
+            <td class="p-3 text-zinc-400 font-medium">${fechaFormateada}</td>
+            <td class="p-3 text-zinc-200 font-medium">${v.producto} <span class="text-[10px] text-purple-400 font-normal">(${v.cantidad || 1} uds)</span></td>
+            <td class="p-3"><span class="px-2 py-0.5 bg-zinc-800 text-zinc-300 rounded text-[11px]">${v.vendedor}</span></td>
+            <td class="p-3 text-zinc-400">${v.ubicacion || 'General'}</td>
+            <td class="p-3 text-right font-bold text-purple-400">$ ${Number(v.monto).toLocaleString()}</td>
+          </tr>`;
+      });
+
+      renderChartTimeline(Object.keys(mapTimeline).sort(), Object.keys(mapTimeline).sort().map(k => mapTimeline[k]));
+      renderChartVendedores(Object.keys(mapVendedores), Object.values(mapVendedores));
+      renderChartUbicaciones(Object.keys(mapUbicaciones), Object.values(mapUbicaciones));
+    }
+
+    const baseChartOptions = { theme: { mode: 'dark' }, chart: { background: 'transparent', foreColor: '#a1a1aa', toolbar: { show: false } }, colors: ['#a855f7', '#3b82f6', '#10b981'] };
+
+    function renderChartTimeline(labels, data) {
+      const options = { ...baseChartOptions, chart: { ...baseChartOptions.chart, type: 'area', height: 240 }, stroke: { curve: 'smooth', width: 2 }, series: [{ name: 'Ventas', data: data }], xaxis: { categories: labels, type: 'datetime' } };
+      if(chartInstances.timeline) chartInstances.timeline.destroy();
+      chartInstances.timeline = new ApexCharts(document.getElementById("chart-timeline"), options); chartInstances.timeline.render();
+    }
+
+    function renderChartVendedores(labels, data) {
+      const options = { ...baseChartOptions, chart: { ...baseChartOptions.chart, type: 'bar', height: 200, events: { dataPointSelection: (e, c, config) => { selectedFilters.vendedor = selectedFilters.vendedor === labels[config.dataPointIndex] ? null : labels[config.dataPointIndex]; procesarFiltrosYRender(); } } }, plotOptions: { bar: { horizontal: true, borderRadius: 4 } }, series: [{ name: 'Monto', data: data }], xaxis: { categories: labels } };
+      if(chartInstances.vendedores) chartInstances.vendedores.destroy();
+      chartInstances.vendedores = new ApexCharts(document.getElementById("chart-vendedores"), options); chartInstances.vendedores.render();
+    }
+
+    function renderChartUbicaciones(labels, data) {
+      const options = { ...baseChartOptions, chart: { ...baseChartOptions.chart, type: 'donut', height: 220, events: { dataPointSelection: (e, c, config) => { selectedFilters.ubicacion = selectedFilters.ubicacion === labels[config.dataPointIndex] ? null : labels[config.dataPointIndex]; procesarFiltrosYRender(); } } }, stroke: { show: false }, series: data, labels: labels, legend: { position: 'bottom' } };
+      if(chartInstances.ubicaciones) chartInstances.ubicaciones.destroy();
+      chartInstances.ubicaciones = new ApexCharts(document.getElementById("chart-ubicaciones"), options); chartInstances.ubicaciones.render();
+    }
+
+    function cambiarPestaña(tabId) { 
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden')); 
+      document.getElementById('tab-' + tabId).classList.remove('hidden'); 
+      document.getElementById('header-empresa').innerText = db.organizacion.nombreEmpresa || "DataPulse";
+    }
+    
+    function guardarMistralKey() { 
+      const key = document.getElementById('cfg-mistral').value; 
+      consumirApiBack('guardarConfig', { mistralKey: key }, () => { 
+        session.mistralKey = key; 
+        document.getElementById('api-status-badge').classList.remove('hidden');
+        alert("API Key Guardada exitosamente."); 
+      }); 
+    }
+
+    // MEJORA: PARSEO AUTOMÁTICO DE MARKDOWN USANDO LA LIBRERÍA MARKED YA IMPORTADA
+    function ejecutarAnalisisIA() {
+      if(!session.mistralKey) return alert("Falta API Key.");
+      const out = document.getElementById('ia-output'); out.innerHTML = `<p class="text-center py-20 text-purple-400 animate-pulse">Analizando matrices estratégicas corporativas de ${db.organizacion.nombreEmpresa || 'la empresa'} e inventarios en vivo...</p>`;
+      
+      const facturacionTotal = db.ventas.reduce((acc, curr) => acc + Number(curr.monto || 0), 0);
+      const resumenProductos = db.productos.map(p => `${p.nombre}: (Vendidos: ${p.vendidos}, Existencias actuales: ${Number(p.stockInicial)-Number(p.vendidos)})`).join(' | ');
+      
+      const d = db.organizacion.dofa || {};
+      const p = db.organizacion.pestel || {};
+
+      const pContext = `Eres el Chief Data Officer de "${db.organizacion.nombreEmpresa || 'la empresa'}". Analiza estos datos y responde ÚNICAMENTE con JSON válido, sin texto adicional ni bloques markdown.
+
+DATOS:
+- Facturación acumulada: $${facturacionTotal.toLocaleString('es-CO')} COP
+- Inventario: ${resumenProductos}
+- Sector: ${db.organizacion.sector || 'No especificado'}
+- Fortalezas: ${d.f || 'No provisto'}
+- Oportunidades: ${d.o || 'No provisto'}
+- Debilidades: ${d.d || 'No provisto'}
+- Amenazas: ${d.a || 'No provisto'}
+
+Responde ÚNICAMENTE con el objeto JSON empezando con { y terminando con }. Cero texto adicional:
+{
+  "estado": "resumen ejecutivo en 2 oraciones",
+  "hallazgos_clave": ["hallazgo 1", "hallazgo 2", "hallazgo 3"],
+  "oportunidades": ["oportunidad 1", "oportunidad 2", "oportunidad 3"],
+  "alertas": ["alerta 1", "alerta 2"],
+  "recomendaciones": ["acción concreta 1", "acción concreta 2", "acción concreta 3"],
+  "roi_inmediato": "estimado de impacto financiero en 30 días"
+}`;
+
+      fetch('https://api.mistral.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.mistralKey}` },
+        body: JSON.stringify({ model: 'mistral-small-latest', messages: [{ role: 'user', content: pContext }], temperature: 0.2 })
+      })
+      .then(r => r.json()).then(res => {
+        const raw = res.choices[0].message.content;
+        // Extraer JSON: quitar ```json, bloques de código, y la palabra "json" suelta al inicio
+        const cleaned = raw
+          .replace(/^\s*json\s*/i, '')
+          .replace(/```json\n?/gi, '')
+          .replace(/```\n?/g, '')
+          .trim();
+        const match = cleaned.match(/\{[\s\S]*\}/);
+        try {
+          const p = JSON.parse(match ? match[0] : cleaned);
+          const seccion = (titulo, items, color) => {
+            if (!items || !items.length) return '';
+            const dots = { 'emerald': 'bg-emerald-500', 'amber': 'bg-amber-400', 'rose': 'bg-rose-500', 'blue': 'bg-blue-500' };
+            const texts = { 'emerald': 'text-emerald-400', 'amber': 'text-amber-400', 'rose': 'text-rose-400', 'blue': 'text-blue-400' };
+            return `<div class="glass p-4 rounded-xl space-y-2">
+              <p class="text-xs font-bold uppercase tracking-wider ${texts[color] || 'text-purple-400'} mb-2">${titulo}</p>
+              ${items.map((item, i) => `<div class="flex gap-2.5 items-start">
+                <span class="mt-1.5 w-1.5 h-1.5 rounded-full ${dots[color] || 'bg-purple-500'} flex-shrink-0"></span>
+                <span class="text-zinc-300 text-xs leading-relaxed">${item}</span>
+              </div>`).join('')}
+            </div>`;
+          };
+          out.innerHTML = `
+            <div class="space-y-4">
+              <div class="glass p-4 rounded-xl border-l-4 border-purple-500">
+                <p class="text-xs font-bold text-purple-400 uppercase tracking-wider mb-1">Estado General</p>
+                <p class="text-zinc-200 text-sm leading-relaxed">${p.estado || p.resumen || p.diagnostico || ''}</p>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                ${seccion('🚀 Hallazgos Clave', p.hallazgos || p.hallazgos_clave, 'blue')}
+                ${seccion('📈 Oportunidades', p.oportunidades, 'emerald')}
+                ${seccion('⚠️ Alertas', p.alertas || p.riesgos, 'rose')}
+                ${seccion('💡 Recomendaciones', p.recomendaciones || p.acciones, 'amber')}
+              </div>
+              ${p.roi_inmediato || p.roi ? `<div class="glass p-4 rounded-xl">
+                <p class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2">💰 ROI Inmediato</p>
+                <p class="text-zinc-300 text-xs leading-relaxed">${typeof p.roi_inmediato === 'object' ? JSON.stringify(p.roi_inmediato) : (p.roi_inmediato || p.roi)}</p>
+              </div>` : ''}
+            </div>`;
+        } catch(e) {
+          // Fallback: render como texto limpio sin markdown crudo
+          out.innerHTML = `<div class="glass p-5 rounded-xl text-zinc-300 text-sm leading-relaxed whitespace-pre-line">${raw.replace(/[#*`]/g, '').replace(/---/g, '').trim()}</div>`;
+        }
+      });
+    }
+
+    function actualizarAvanceOKR(idObjetivo, meta) {
+      const input = document.getElementById('input-actual-' + idObjetivo);
+      const nuevoActual = Number(input.value);
+      if (isNaN(nuevoActual) || nuevoActual < 0) {
+        alert('Ingresa un valor válido'); return;
+      }
+
+      // Actualizar UI inmediatamente sin esperar al servidor
+      const pct = meta > 0 ? Math.min(Math.round((nuevoActual / meta) * 100), 100) : 0;
+      const falta = Math.max(0, meta - nuevoActual);
+      const semColor = pct >= 70 ? 'bg-emerald-500' : pct >= 40 ? 'bg-amber-400' : 'bg-rose-500';
+      const semText  = pct >= 70 ? 'text-emerald-400': pct >= 40 ? 'text-amber-400': 'text-rose-400';
+
+      const bar   = document.getElementById('pct-bar-'    + idObjetivo);
+      const label = document.getElementById('pct-label-'  + idObjetivo);
+      const actEl = document.getElementById('actual-label-'+ idObjetivo);
+      const faltEl= document.getElementById('falta-label-'+ idObjetivo);
+
+      if (bar)   { bar.style.width = pct + '%'; bar.className = bar.className.replace(/bg-\w+-\d+/, semColor); }
+      if (label) { label.textContent = pct + '%'; label.className = label.className.replace(/text-\w+-\d+/, semText); }
+      if (actEl) { actEl.textContent = '$' + nuevoActual.toLocaleString('es-CO'); }
+      if (faltEl){ faltEl.textContent = falta <= 0 ? '✓ Meta' : '$' + falta.toLocaleString('es-CO'); }
+
+      // Actualizar db local para que el KPI del dashboard se recalcule
+      const okr = db.objetivos.find(o => o.id === idObjetivo);
+      if (okr) okr.actual = nuevoActual;
+
+      // Recalcular KPI global del dashboard
+      let totalMeta = 0, totalActual = 0;
+      db.objetivos.forEach(o => {
+        totalMeta   += Number(o.meta   || 0);
+        totalActual += Number(o.actual || 0);
+      });
+      const globalPct = totalMeta > 0 ? Math.min(Math.round((totalActual / totalMeta) * 100), 100) : 0;
+      const kpiEl = document.getElementById('kpi-okr-cumplimiento');
+      if (kpiEl) kpiEl.innerText = globalPct + '%';
+
+      // Enviar al Apps Script
+      consumirApiBack('actualizarAvanceOKR', { idObjetivo, nuevoActual }, (res) => {
+        console.log('Avance sincronizado:', res);
+      });
+    }
+
+    function logout() { localStorage.clear(); location.reload(); }
+  </script>
+</body>
+</html>
