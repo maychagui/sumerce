@@ -1,0 +1,264 @@
+/**
+ * BACKEND EN GOOGLE APPS SCRIPT PARA DATAPULSE SUITE PRO
+ * Empresa: Sumerce Alimentos S.A.S.
+ * Cliente: Carlos Mendoza
+ */
+
+// 1. Manejo de Peticiones GET (Ping & Fallback)
+function doGet(e) {
+  return createJsonResponse({
+    success: true,
+    data: {
+      message: 'DataPulse Backend API activa y respondiendo correctamente.',
+      timestamp: new Date().toISOString()
+    }
+  });
+}
+
+// 2. Manejo de Peticiones POST (Comunicaciones desde la App SPA)
+function doPost(e) {
+  try {
+    var contents = JSON.parse(e.postData.contents);
+    var action = contents.action;
+    var idUsuario = contents.idUsuario || 'default';
+    var correo = contents.correo || '';
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    // Asegurar estructura de tablas
+    initDatabase(ss);
+
+    switch (action) {
+      case 'login':
+        var orgSheet = ss.getSheetByName('Organización');
+        var orgData = readSheetData(ss, 'Organización');
+        var esNuevo = orgData.length === 0;
+        
+        return createJsonResponse({
+          success: true,
+          data: {
+            idUsuario: idUsuario,
+            esNuevo: esNuevo,
+            organizacion: esNuevo ? {} : parseOrganizacion(orgData[0])
+          }
+        });
+
+      case 'obtenerDatosDashboard':
+        var configData = readSheetData(ss, 'Configuracion');
+        var mistralKey = configData.length > 0 ? configData[0].mistralKey || '' : '';
+        var rawOrg = readSheetData(ss, 'Organización');
+        
+        return createJsonResponse({
+          success: true,
+          data: {
+            ventas: parseVentas(readSheetData(ss, 'Ventas')),
+            productos: parseProductos(readSheetData(ss, 'Productos'), readSheetData(ss, 'Ventas')),
+            vendedores: readSheetData(ss, 'Vendedores'),
+            objetivos: parseObjetivos(readSheetData(ss, 'OKRs')),
+            organizacion: rawOrg.length > 0 ? parseOrganizacion(rawOrg[0]) : {},
+            mistralKey: mistralKey
+          }
+        });
+
+      case 'guardarOrganizacion':
+        var org = contents.orgData;
+        var sheetOrg = ss.getSheetByName('Organización');
+        sheetOrg.clear();
+        sheetOrg.appendRow(['nombreEmpresa', 'nit', 'tamaño', 'sector', 'dofa', 'pestel']);
+        sheetOrg.appendRow([
+          org.nombreEmpresa || '',
+          org.nit || '',
+          org.tamaño || '',
+          org.sector || '',
+          JSON.stringify(org.dofa || {}),
+          JSON.stringify(org.pestel || {})
+        ]);
+        return createJsonResponse({ success: true, data: { nombreEmpresa: org.nombreEmpresa } });
+
+      case 'registrarVenta':
+        var v = contents.venta;
+        saveToSheet(ss, 'Ventas', [
+          'V-' + new Date().getTime(),
+          v.fecha,
+          v.producto,
+          Number(v.cantidad),
+          Number(v.monto),
+          v.vendedor,
+          v.ubicacion,
+          new Date()
+        ]);
+        return createJsonResponse({ success: true, data: { message: 'Venta registrada' } });
+
+      case 'crearProducto':
+        var p = contents.producto;
+        saveToSheet(ss, 'Productos', [
+          'P-' + new Date().getTime(),
+          p.nombre,
+          Number(p.stockInicial),
+          Number(p.precio),
+          new Date()
+        ]);
+        return createJsonResponse({ success: true, data: { message: 'Producto registrado' } });
+
+      case 'crearVendedor':
+        var vend = contents.vendedor;
+        saveToSheet(ss, 'Vendedores', [
+          'VD-' + new Date().getTime(),
+          vend.nombre,
+          vend.zona,
+          new Date()
+        ]);
+        return createJsonResponse({ success: true, data: { message: 'Vendedor vinculado' } });
+
+      case 'guardarObjetivo':
+        var obj = contents.objetivo;
+        saveToSheet(ss, 'OKRs', [
+          'OKR-' + new Date().getTime(),
+          obj.objetivo,
+          obj.descripcion,
+          Number(obj.meta),
+          Number(obj.actual || 0),
+          new Date()
+        ]);
+        return createJsonResponse({ success: true, data: { message: 'OKR creado' } });
+
+      case 'actualizarAvanceOKR':
+        var idObj = contents.idObjetivo;
+        var nuevoAct = Number(contents.nuevoActual);
+        var sheetOKR = ss.getSheetByName('OKRs');
+        var dataOKR = sheetOKR.getDataRange().getValues();
+        
+        for (var i = 1; i < dataOKR.length; i++) {
+          if (dataOKR[i][0].toString() === idObj.toString()) {
+            sheetOKR.getRange(i + 1, 5).setValue(nuevoAct); // Columna 5 = actual
+            break;
+          }
+        }
+        return createJsonResponse({ success: true, data: { message: 'Avance de OKR actualizado' } });
+
+      case 'guardarConfig':
+        var sheetCfg = ss.getSheetByName('Configuracion');
+        sheetCfg.clear();
+        sheetCfg.appendRow(['mistralKey']);
+        sheetCfg.appendRow([contents.mistralKey || '']);
+        return createJsonResponse({ success: true, data: { message: 'Key guardada' } });
+
+      default:
+        return createJsonResponse({ success: false, error: 'Acción no reconocida: ' + action });
+    }
+  } catch (err) {
+    return createJsonResponse({ success: false, error: err.toString() });
+  }
+}
+
+// ------------------------------------------------------------------
+// FUNCIONES AUXILIARES DE BASE DE DATOS
+// ------------------------------------------------------------------
+
+function initDatabase(ss) {
+  var estructuras = {
+    'Organización': ['nombreEmpresa', 'nit', 'tamaño', 'sector', 'dofa', 'pestel'],
+    'Ventas': ['id', 'fecha', 'producto', 'cantidad', 'monto', 'vendedor', 'ubicacion', 'fechaRegistro'],
+    'Productos': ['id', 'nombre', 'stockInicial', 'precio', 'fechaRegistro'],
+    'Vendedores': ['id', 'nombre', 'zona', 'fechaRegistro'],
+    'OKRs': ['id', 'objetivo', 'descripcion', 'meta', 'actual', 'fechaRegistro'],
+    'Configuracion': ['mistralKey']
+  };
+
+  Object.keys(estructuras).forEach(function(name) {
+    var sheet = ss.getSheetByName(name);
+    if (!sheet) {
+      sheet = ss.insertSheet(name);
+      sheet.appendRow(estructuras[name]);
+    }
+  });
+}
+
+function saveToSheet(ss, sheetName, rowData) {
+  var sheet = ss.getSheetByName(sheetName);
+  sheet.appendRow(rowData);
+}
+
+function readSheetData(ss, sheetName) {
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return [];
+  var values = sheet.getDataRange().getValues();
+  if (values.length <= 1) return [];
+
+  var headers = values[0];
+  var results = [];
+
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    var obj = {};
+    for (var j = 0; j < headers.length; j++) {
+      obj[headers[j]] = row[j];
+    }
+    results.push(obj);
+  }
+  return results;
+}
+
+function parseOrganizacion(row) {
+  return {
+    nombreEmpresa: row.nombreEmpresa || '',
+    nit: row.nit || '',
+    tamaño: row.tamaño || '',
+    sector: row.sector || '',
+    dofa: row.dofa ? JSON.parse(row.dofa) : {},
+    pestel: row.pestel ? JSON.parse(row.pestel) : {}
+  };
+}
+
+function parseVentas(rawVentas) {
+  return rawVentas.map(function(v) {
+    var fechaIso = v.fecha;
+    if (v.fecha instanceof Date) {
+      fechaIso = v.fecha.toISOString().split('T')[0];
+    }
+    return {
+      id: v.id,
+      fecha: fechaIso,
+      producto: v.producto,
+      cantidad: Number(v.cantidad),
+      monto: Number(v.monto),
+      vendedor: v.vendedor,
+      ubicacion: v.ubicacion
+    };
+  });
+}
+
+function parseProductos(rawProductos, rawVentas) {
+  var mapaVendidos = {};
+  rawVentas.forEach(function(v) {
+    var prodName = v.producto;
+    mapaVendidos[prodName] = (mapaVendidos[prodName] || 0) + Number(v.cantidad || 1);
+  });
+
+  return rawProductos.map(function(p) {
+    return {
+      id: p.id,
+      nombre: p.nombre,
+      stockInicial: Number(p.stockInicial),
+      precio: Number(p.precio),
+      vendidos: mapaVendidos[p.nombre] || 0
+    };
+  });
+}
+
+function parseObjetivos(rawOKRs) {
+  return rawOKRs.map(function(o) {
+    return {
+      id: o.id,
+      objetivo: o.objetivo,
+      descripcion: o.descripcion,
+      meta: Number(o.meta),
+      actual: Number(o.actual)
+    };
+  });
+}
+
+function createJsonResponse(data) {
+  return ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
