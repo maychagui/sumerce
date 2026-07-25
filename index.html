@@ -1,264 +1,34 @@
-/**
- * BACKEND EN GOOGLE APPS SCRIPT PARA DATAPULSE SUITE PRO
- * Empresa: Sumerce Alimentos S.A.S.
- * Cliente: Carlos Mendoza
- */
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DataPulse Suite Pro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #09090b; color: #f4f4f5; }
+    .glass { background: rgba(20, 20, 23, 0.85); backdrop-filter: blur(14px); border: 1px solid rgba(63, 63, 70, 0.3); }
+    
+    /* ESTILOS EDITORIALES PREMIUM PARA EL REPORTE DE IA */
+    .ai-render h1 { color: #c084fc; font-size: 1.6rem; font-weight: 800; tracking-tight: -0.025em; border-bottom: 1px solid rgba(168, 85, 247, 0.3); padding-bottom: 0.5rem; margin-top: 1.5rem; margin-bottom: 1rem; }
+    .ai-render h2 { color: #a855f7; font-size: 1.25rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.75rem; display: flex; items-center: center; gap: 0.5rem; }
+    .ai-render h3 { color: #e4e4e7; font-size: 1.05rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; border-left: 3px solid #a855f7; padding-left: 8px; }
+    .ai-render p { margin-bottom: 0.75rem; color: #a1a1aa; line-height: 1.6; font-size: 0.9rem; }
+    .ai-render ul { list-style-type: disc; margin-left: 1.25rem; margin-bottom: 1rem; color: #d4d4d8; space-y: 0.25rem; }
+    .ai-render li { font-size: 0.875rem; line-height: 1.5; }
+    .ai-render strong { color: #ffffff; font-weight: 600; }
+    .ai-render table { w-full: 100%; text-align: left; font-size: 0.8rem; margin: 1rem 0; border-collapse: collapse; background: rgba(24, 24, 27, 0.5); border-radius: 12px; overflow: hidden; border: 1px solid rgba(63, 63, 70, 0.4); }
+    .ai-render th { background: #18181b; padding: 0.75rem; text-transform: uppercase; font-weight: 600; color: #a1a1aa; border-bottom: 1px solid rgba(63, 63, 70, 0.4); }
+    .ai-render td { padding: 0.75rem; border-bottom: 1px solid rgba(39, 39, 42, 0.5); color: #e4e4e7; }
+    .ai-render tr:hover { background: rgba(39, 39, 42, 0.3); }
+    .ai-render hr { border-color: rgba(63, 63, 70, 0.3); margin: 1.5rem 0; }
+  </style>
+</head>
+<body class="antialiased min-h-screen pb-16 md:pb-0">
 
-// 1. Manejo de Peticiones GET (Ping & Fallback)
-function doGet(e) {
-  return createJsonResponse({
-    success: true,
-    data: {
-      message: 'DataPulse Backend API activa y respondiendo correctamente.',
-      timestamp: new Date().toISOString()
-    }
-  });
-}
-
-// 2. Manejo de Peticiones POST (Comunicaciones desde la App SPA)
-function doPost(e) {
-  try {
-    var contents = JSON.parse(e.postData.contents);
-    var action = contents.action;
-    var idUsuario = contents.idUsuario || 'default';
-    var correo = contents.correo || '';
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-
-    // Asegurar estructura de tablas
-    initDatabase(ss);
-
-    switch (action) {
-      case 'login':
-        var orgSheet = ss.getSheetByName('Organización');
-        var orgData = readSheetData(ss, 'Organización');
-        var esNuevo = orgData.length === 0;
-        
-        return createJsonResponse({
-          success: true,
-          data: {
-            idUsuario: idUsuario,
-            esNuevo: esNuevo,
-            organizacion: esNuevo ? {} : parseOrganizacion(orgData[0])
-          }
-        });
-
-      case 'obtenerDatosDashboard':
-        var configData = readSheetData(ss, 'Configuracion');
-        var mistralKey = configData.length > 0 ? configData[0].mistralKey || '' : '';
-        var rawOrg = readSheetData(ss, 'Organización');
-        
-        return createJsonResponse({
-          success: true,
-          data: {
-            ventas: parseVentas(readSheetData(ss, 'Ventas')),
-            productos: parseProductos(readSheetData(ss, 'Productos'), readSheetData(ss, 'Ventas')),
-            vendedores: readSheetData(ss, 'Vendedores'),
-            objetivos: parseObjetivos(readSheetData(ss, 'OKRs')),
-            organizacion: rawOrg.length > 0 ? parseOrganizacion(rawOrg[0]) : {},
-            mistralKey: mistralKey
-          }
-        });
-
-      case 'guardarOrganizacion':
-        var org = contents.orgData;
-        var sheetOrg = ss.getSheetByName('Organización');
-        sheetOrg.clear();
-        sheetOrg.appendRow(['nombreEmpresa', 'nit', 'tamaño', 'sector', 'dofa', 'pestel']);
-        sheetOrg.appendRow([
-          org.nombreEmpresa || '',
-          org.nit || '',
-          org.tamaño || '',
-          org.sector || '',
-          JSON.stringify(org.dofa || {}),
-          JSON.stringify(org.pestel || {})
-        ]);
-        return createJsonResponse({ success: true, data: { nombreEmpresa: org.nombreEmpresa } });
-
-      case 'registrarVenta':
-        var v = contents.venta;
-        saveToSheet(ss, 'Ventas', [
-          'V-' + new Date().getTime(),
-          v.fecha,
-          v.producto,
-          Number(v.cantidad),
-          Number(v.monto),
-          v.vendedor,
-          v.ubicacion,
-          new Date()
-        ]);
-        return createJsonResponse({ success: true, data: { message: 'Venta registrada' } });
-
-      case 'crearProducto':
-        var p = contents.producto;
-        saveToSheet(ss, 'Productos', [
-          'P-' + new Date().getTime(),
-          p.nombre,
-          Number(p.stockInicial),
-          Number(p.precio),
-          new Date()
-        ]);
-        return createJsonResponse({ success: true, data: { message: 'Producto registrado' } });
-
-      case 'crearVendedor':
-        var vend = contents.vendedor;
-        saveToSheet(ss, 'Vendedores', [
-          'VD-' + new Date().getTime(),
-          vend.nombre,
-          vend.zona,
-          new Date()
-        ]);
-        return createJsonResponse({ success: true, data: { message: 'Vendedor vinculado' } });
-
-      case 'guardarObjetivo':
-        var obj = contents.objetivo;
-        saveToSheet(ss, 'OKRs', [
-          'OKR-' + new Date().getTime(),
-          obj.objetivo,
-          obj.descripcion,
-          Number(obj.meta),
-          Number(obj.actual || 0),
-          new Date()
-        ]);
-        return createJsonResponse({ success: true, data: { message: 'OKR creado' } });
-
-      case 'actualizarAvanceOKR':
-        var idObj = contents.idObjetivo;
-        var nuevoAct = Number(contents.nuevoActual);
-        var sheetOKR = ss.getSheetByName('OKRs');
-        var dataOKR = sheetOKR.getDataRange().getValues();
-        
-        for (var i = 1; i < dataOKR.length; i++) {
-          if (dataOKR[i][0].toString() === idObj.toString()) {
-            sheetOKR.getRange(i + 1, 5).setValue(nuevoAct); // Columna 5 = actual
-            break;
-          }
-        }
-        return createJsonResponse({ success: true, data: { message: 'Avance de OKR actualizado' } });
-
-      case 'guardarConfig':
-        var sheetCfg = ss.getSheetByName('Configuracion');
-        sheetCfg.clear();
-        sheetCfg.appendRow(['mistralKey']);
-        sheetCfg.appendRow([contents.mistralKey || '']);
-        return createJsonResponse({ success: true, data: { message: 'Key guardada' } });
-
-      default:
-        return createJsonResponse({ success: false, error: 'Acción no reconocida: ' + action });
-    }
-  } catch (err) {
-    return createJsonResponse({ success: false, error: err.toString() });
-  }
-}
-
-// ------------------------------------------------------------------
-// FUNCIONES AUXILIARES DE BASE DE DATOS
-// ------------------------------------------------------------------
-
-function initDatabase(ss) {
-  var estructuras = {
-    'Organización': ['nombreEmpresa', 'nit', 'tamaño', 'sector', 'dofa', 'pestel'],
-    'Ventas': ['id', 'fecha', 'producto', 'cantidad', 'monto', 'vendedor', 'ubicacion', 'fechaRegistro'],
-    'Productos': ['id', 'nombre', 'stockInicial', 'precio', 'fechaRegistro'],
-    'Vendedores': ['id', 'nombre', 'zona', 'fechaRegistro'],
-    'OKRs': ['id', 'objetivo', 'descripcion', 'meta', 'actual', 'fechaRegistro'],
-    'Configuracion': ['mistralKey']
-  };
-
-  Object.keys(estructuras).forEach(function(name) {
-    var sheet = ss.getSheetByName(name);
-    if (!sheet) {
-      sheet = ss.insertSheet(name);
-      sheet.appendRow(estructuras[name]);
-    }
-  });
-}
-
-function saveToSheet(ss, sheetName, rowData) {
-  var sheet = ss.getSheetByName(sheetName);
-  sheet.appendRow(rowData);
-}
-
-function readSheetData(ss, sheetName) {
-  var sheet = ss.getSheetByName(sheetName);
-  if (!sheet) return [];
-  var values = sheet.getDataRange().getValues();
-  if (values.length <= 1) return [];
-
-  var headers = values[0];
-  var results = [];
-
-  for (var i = 1; i < values.length; i++) {
-    var row = values[i];
-    var obj = {};
-    for (var j = 0; j < headers.length; j++) {
-      obj[headers[j]] = row[j];
-    }
-    results.push(obj);
-  }
-  return results;
-}
-
-function parseOrganizacion(row) {
-  return {
-    nombreEmpresa: row.nombreEmpresa || '',
-    nit: row.nit || '',
-    tamaño: row.tamaño || '',
-    sector: row.sector || '',
-    dofa: row.dofa ? JSON.parse(row.dofa) : {},
-    pestel: row.pestel ? JSON.parse(row.pestel) : {}
-  };
-}
-
-function parseVentas(rawVentas) {
-  return rawVentas.map(function(v) {
-    var fechaIso = v.fecha;
-    if (v.fecha instanceof Date) {
-      fechaIso = v.fecha.toISOString().split('T')[0];
-    }
-    return {
-      id: v.id,
-      fecha: fechaIso,
-      producto: v.producto,
-      cantidad: Number(v.cantidad),
-      monto: Number(v.monto),
-      vendedor: v.vendedor,
-      ubicacion: v.ubicacion
-    };
-  });
-}
-
-function parseProductos(rawProductos, rawVentas) {
-  var mapaVendidos = {};
-  rawVentas.forEach(function(v) {
-    var prodName = v.producto;
-    mapaVendidos[prodName] = (mapaVendidos[prodName] || 0) + Number(v.cantidad || 1);
-  });
-
-  return rawProductos.map(function(p) {
-    return {
-      id: p.id,
-      nombre: p.nombre,
-      stockInicial: Number(p.stockInicial),
-      precio: Number(p.precio),
-      vendidos: mapaVendidos[p.nombre] || 0
-    };
-  });
-}
-
-function parseObjetivos(rawOKRs) {
-  return rawOKRs.map(function(o) {
-    return {
-      id: o.id,
-      objetivo: o.objetivo,
-      descripcion: o.descripcion,
-      meta: Number(o.meta),
-      actual: Number(o.actual)
-    };
-  });
-}
-
-function createJsonResponse(data) {
-  return ContentService
-    .createTextOutput(JSON.stringify(data))
-    .setMimeType(ContentService.MimeType.JSON);
-}
+  <!-- VISTA: LOGIN -->
+  <div id="view-login" class="flex items-center justify-center min-h-screen px-4">
